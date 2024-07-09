@@ -1,9 +1,9 @@
 -- code generated from the following source code:
---   ../benchs/examples/mixed_computations.ecl
+--   ../rvm.ecl
 --
 -- with the following command:
 --
---    ./eclat ../benchs/examples/mixed_computations.ecl -arg=1;2;3
+--    ./eclat -notyB ../rvm.ecl
 
 
 library ieee;
@@ -24,11 +24,11 @@ architecture tb of tb_main is
       signal run    : in std_logic;
       signal rdy    : out value(0 to 0);
       signal argument : in value(0 to 31);
-      signal result : out value(0 to 0));
+      signal result : out value(0 to 1));
 end component;
   signal tb_run: std_logic;
   signal tb_argument: std_logic_vector(0 to 31);
-  signal tb_result: std_logic_vector(0 to 0);
+  signal tb_result: std_logic_vector(0 to 1);
   signal tb_rdy: value(0 to 0);
   signal tb_clk: std_logic;
   signal rst: std_logic;
@@ -53,34 +53,11 @@ end component;
 
   U1: main port map(tb_clk,rst,tb_run,tb_rdy,tb_argument,tb_result);
   process
-  variable 
-\$v89\ : value(0 to 31) := (others => '0');
-begin
+  begin
     tb_run <= '0';
     wait for 10 ns;
     tb_run <= '1';
       -- Start computation
-      \$v89\ := X"0000000" & X"1";
-      tb_argument <= \$v89\;
-
-      wait for 10 ns;
-      while tb_rdy = "0" loop
-        wait for 10 ns;
-      end loop;
-      \$v89\ := X"0000000" & X"2";
-      tb_argument <= \$v89\;
-
-      wait for 10 ns;
-      while tb_rdy = "0" loop
-        wait for 10 ns;
-      end loop;
-      \$v89\ := X"0000000" & X"3";
-      tb_argument <= \$v89\;
-
-      wait for 10 ns;
-      while tb_rdy = "0" loop
-        wait for 10 ns;
-      end loop;
 
     wait;
   end process;

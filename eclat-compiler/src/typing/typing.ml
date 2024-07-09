@@ -657,14 +657,14 @@ let rec typ_exp ?(collect_sig=false) ~statics ~sums ~toplevel ~loc (g:env) e =
      let tx = typ_ident g x loc in
      let t3 = unknown() in
      unify ~loc (T_array{elem=t3;size=(unknown())}) tx;
-     (t3, Response_time.(add one (add one n)))
+     (t3, n)
   | E_array_set(x,e1,e2) ->
      let t1,n = typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g e1 in
      let t2,m = typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g e2 in
      unify ~loc t1 (tint (unknown()));
      let t3 = typ_ident g x loc in
      unify ~loc (T_array{elem=t2;size=(unknown())}) t3;
-     (T_const TUnit, Response_time.(add one (add one (T_add(n,m)))))
+     (T_const TUnit, T_add(n,m))
   | E_local_static_matrix(e1,es,_) ->
       let t1,n1 = typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g e1 in
       let ts,ns = List.split @@ List.map (fun ei ->
@@ -688,7 +688,7 @@ let rec typ_exp ?(collect_sig=false) ~statics ~sums ~toplevel ~loc (g:env) e =
      let t3 = unknown() in
      unify ~loc (T_matrix{elem=t3;size=T_tuple (List.map (fun _ -> unknown()) es)}) tx;
      let n = List.fold_left Response_time.add Response_time.zero ns in
-     (t3, Response_time.(add one (add one n)))
+     (t3, n)
   | E_matrix_set(x,es,e2) ->
      let ts,ns = List.split @@ List.map (fun ei ->
                     typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g ei) es in
@@ -698,7 +698,7 @@ let rec typ_exp ?(collect_sig=false) ~statics ~sums ~toplevel ~loc (g:env) e =
      let tx = typ_ident g x loc in
      unify ~loc (T_matrix{elem=t2;size=T_tuple (List.map (fun _ -> unknown()) es)}) tx;
      let n = List.fold_left Response_time.add m ns in
-     (T_const TUnit, Response_time.(add one (add one n)))
+     (T_const TUnit, n)
   | E_for(x,e_st1,e_st2,e3,_) ->
       let v = unknown() in
       let intv = tint v in
@@ -1388,7 +1388,7 @@ module Typing2 = struct
         let tyx = typ_ident ~loc g x in
         let tyB = new_tyB_unknown () in
         unify_ty ~loc (Ty_array(new_size_unknown(),tyB)) tyx;
-        (Ty_base tyB,Dur_one)
+        (Ty_base tyB,d)
     | E_array_set(x,e1,e2) ->
         let ty1,d1 = typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g e1 in
         let ty2,d2 = typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g e2 in
@@ -1397,7 +1397,7 @@ module Typing2 = struct
         let tyB = new_tyB_unknown () in
         unify_ty ~loc ty2 (Ty_base tyB);
         unify_ty ~loc (Ty_array(new_size_unknown(),tyB)) tyx;
-        (Ty_base TyB_unit, Dur_one)
+        (Ty_base TyB_unit, Dur_max(d1,d2))
 
 
     | E_local_static_matrix _ -> assert false (* TODO *)
@@ -1417,7 +1417,7 @@ module Typing2 = struct
        let tyB_elem = new_tyB_unknown() in
        unify_ty ~loc (Ty_matrix(List.map (fun _ -> new_size_unknown ()) ty_list, tyB_elem)) tyx;
        let d = List.fold_left (fun d1 d2 -> Dur_max(d1,d2)) Dur_zero d_list in
-       (Ty_base tyB_elem,Dur_one)
+       (Ty_base tyB_elem, d)
     | E_matrix_set(x,es,e2) ->
        let ty_list,d_list = List.split @@ List.map (fun ei ->
                       typ_exp ~collect_sig ~statics ~sums ~toplevel:false ~loc g ei) es in
@@ -1428,7 +1428,7 @@ module Typing2 = struct
        unify_ty ~loc ty2 (Ty_base tyB_elem);
        unify_ty ~loc (Ty_matrix(List.map (fun _ -> new_size_unknown ()) ty_list, tyB_elem)) tyx;
        let d = List.fold_left (fun d1 d2 -> Dur_max(d1,d2)) d2 d_list in
-       (Ty_base TyB_unit,Dur_one)
+       (Ty_base TyB_unit, d)
 
     | E_for(x,e_st1,e_st2,e3,_) ->
       let  vsize = new_size_unknown() in

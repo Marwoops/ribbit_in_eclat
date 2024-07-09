@@ -27,12 +27,12 @@ type op =
   | Vector_update of Types.ty
 
   (* for simulation only *)
-  | Print | Print_string | Print_int | Print_newline | Assert
+  | Print | Print_string | Print_int | Print_char | Print_newline | Assert
 
 
 let combinational p =
   match p with
-  | Print | Print_string | Print_int | Print_newline | Assert -> false
+  | Print | Print_string | Print_int | Print_char | Print_newline | Assert -> false
   | _ -> true
 
 let ty_op op =
@@ -98,6 +98,8 @@ let ty_op op =
       (T_string (unknown())) ==> tunit
   | Print_int ->
       (tint (unknown())) ==> tunit
+  | Print_char ->
+      (tint (unknown())) ==> tunit
   | Print_newline ->
       tunit ==> tunit
   | Assert ->
@@ -159,6 +161,9 @@ let ty_op2 op =
       let sz = new_size_unknown() in
       Ty_fun(Ty_base (TyB_string sz),Dur_zero,TyB_unit)
   | Print_int ->
+      let sz = new_size_unknown() in
+      Ty_fun(Ty_base (TyB_int sz),Dur_zero,TyB_unit)
+  | Print_char ->
       let sz = new_size_unknown() in
       Ty_fun(Ty_base (TyB_int sz),Dur_zero,TyB_unit)
   | Print_newline ->
@@ -232,6 +237,7 @@ let pp_op fmt (op:op) : unit =
   | Print -> "print"
   | Print_string -> "print_string"
   | Print_int -> "print_int"
+  | Print_char -> "print_char"
   | Print_newline -> "print_newline"
   | Assert -> "assert"
   | String_length -> "string_length"
@@ -297,6 +303,8 @@ let gen_op fmt (op:op) pp a : unit =
       skip_when !flag_no_print fmt procall "eclat_print_string"
   | Print_int ->
       skip_when !flag_no_print fmt procall "eclat_print_int"
+  | Print_char ->
+      skip_when !flag_no_print fmt procall "eclat_print_char"
   | Print_newline ->
       skip_when !flag_no_print fmt procall "eclat_print_newline"
   | Assert ->

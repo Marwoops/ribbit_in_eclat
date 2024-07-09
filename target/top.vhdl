@@ -1,9 +1,19 @@
 -- code generated from the following source code:
---   ../benchs/game-of-life/v1/v1.ecl
+--   ../ocaml-vm/vm/mlvalue.ecl
+--   ../ocaml-vm/vm/fail.ecl
+--   ../ocaml-vm/vm/ram.ecl
+--   ../ocaml-vm/vm/runtime.ecl
+--   ../ocaml-vm/vm/debug.ecl
+--   ../ocaml-vm/vm/alloc.ecl
+--   ../ocaml-vm/vm/prims.ecl
+--   ../ocaml-vm/bytecode.ecl
+--   ../ocaml-vm/vm/vm.ecl
+--   ../ocaml-vm/vm/target-specific/intel-max10/IOs.ecl
+--   ../ocaml-vm/vm/target-specific/intel-max10/main.ecl
 --
 -- with the following command:
 --
---    ./eclat -relax ../benchs/game-of-life/v1/v1.ecl -intel-max10 -main=main_intel
+--    ./eclat -arg ((true,true,true,true,true,true,true,true,true,true),(true,false)) -intel-max10 ../ocaml-vm/vm/mlvalue.ecl ../ocaml-vm/vm/fail.ecl ../ocaml-vm/vm/ram.ecl ../ocaml-vm/vm/runtime.ecl ../ocaml-vm/vm/debug.ecl ../ocaml-vm/vm/alloc.ecl ../ocaml-vm/vm/prims.ecl ../ocaml-vm/bytecode.ecl ../ocaml-vm/vm/vm.ecl ../ocaml-vm/vm/target-specific/intel-max10/IOs.ecl ../ocaml-vm/vm/target-specific/intel-max10/main.ecl
 
 library IEEE;
 use IEEE.std_logic_1164.all;

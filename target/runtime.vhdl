@@ -56,6 +56,7 @@ package runtime is
   procedure eclat_print (arg:value);
   procedure eclat_print_string (arg:value);
   procedure eclat_print_int (arg:value);
+  procedure eclat_print_char (arg:value);
   procedure eclat_print_newline (arg:value);
 end package;
 
@@ -494,6 +495,15 @@ package body runtime is
   end function;
 
   procedure eclat_print_string(arg:value) is
+    variable s : string (0 to arg'length / 8);
+    begin
+      for i in 0 to s'length-2 loop
+          s(i) := char_of_value(arg(i*8 to i*8+7));
+      end loop;
+      echo(s);
+    end procedure;
+
+  procedure eclat_print_char(arg:value) is
     variable s : string (0 to arg'length / 8);
     begin
       for i in 0 to s'length-2 loop

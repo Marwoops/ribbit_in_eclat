@@ -14,7 +14,7 @@ let clean_exp ~no_print ~no_assert e =
         E_letIn(p,clean e1,clean e2)
     | E_app(e1,e2) ->
         let opt = match un_annot e1 with
-                  | E_const(Op(Runtime(Print | Print_string | Print_int | Print_newline))) ->
+                  | E_const(Op(Runtime(Print | Print_string | Print_int | Print_char | Print_newline))) ->
                        if no_print then Some (E_const(Unit)) else None
                   | E_const(Op(Runtime(Assert))) ->
                        if no_print then Some (E_const(Unit)) else None
