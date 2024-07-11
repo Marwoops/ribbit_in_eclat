@@ -1,5 +1,3 @@
-let inp = [|41; 59; 39; 117; 63; 62; 118; 68; 63; 62; 118; 82; 68; 63; 62; 118; 82; 65; 63; 62; 118; 82; 65; 63; 62; 118; 82; 58; 63; 62; 118; 82; 61; 33; 40; 58; 108; 107; 109; 33; 39; 58; 108; 107; 118; 54; 121|];;
-
 let print_endline (s : string) =
   print_string s;
   print_newline ();;
@@ -24,7 +22,7 @@ let _nil = (Int 0, Int 9, singleton_type);;
 let _false = (Int 0, Int 9, singleton_type);;
 let _true = (Int 0, Int 9, singleton_type);;
 
-let size_ram = 10000;;
+let size_ram = 50000;;
 let fh_start = 4;;
 let fh_end = size_ram / 2;;
 let sh_start = fh_end;;
@@ -43,6 +41,32 @@ let nil_rib = Triplet 0;;
 let true_rib = Triplet 1;;
 let false_rib = Triplet 2;;
 
+type state = Rib of rib | Word of word;;
+
+(*let rec show_state_cps
+  ((prof, s, k) : int<32> * state * (unit -> unit))
+  : unit =
+  match s with
+  Rib (car, cdr, ty) ->
+    print_string "(";
+	let _ = show_state_cps (prof, Word car, (fun () ->
+	print_string ", ";
+	let _ = show_state_cps (prof, Word cdr, (fun () ->
+	print_string ", ";
+	let _ = show_state_cps (prof, Word ty, (fun () ->
+	print_string ")";
+	k (); ()
+	)) in ())) in ())) in ()
+  | Word w ->
+    match w with
+	Triplet i ->
+	  if prof = 0
+	  then print_string "X"
+	  else show_state_cps (prof-1, Rib (ram.(i)), k)
+	| Int i -> print_int i; k ()
+	end
+  end;;*)
+
 let int_of_triplet (w : word) : int<32> =
   match w with
   Triplet i -> i
@@ -52,7 +76,7 @@ let int_of_triplet (w : word) : int<32> =
 let int_of_Int (w : word) : int<32> =
   match w with
   Int i -> i
-  | Triplet _ -> failwith "can't inf_of_Int"
+  | Triplet _ -> failwith "can't int_of_Int"
   end;;
 
 let get_rib (w : word) : rib =
@@ -141,7 +165,7 @@ let get_cdr (w : word) : word = field1_word w;;
 let not_enough_space () = limit.(0) - brk.(0) < 50;;
 
 (* garbage collector *)
-let move (w, next, s, e, ns, ne) =
+let rec move (w, next, s, e, ns, ne) =
   match w with
   Int _ -> (w, next)
   | Triplet i ->
@@ -166,7 +190,7 @@ let same_half (i,j) =
       or
   (i >= sh_start && i < sh_end && j >= sh_start && j < sh_end);;
 
-let collect () =
+(*let collect () =
   print_endline "collect";
   let (s, e, ns, ne) =
     if same_half (brk.(0), fh_start)
@@ -192,8 +216,8 @@ let collect () =
 	  loop (scan+1, next))
 	else scan
   in brk.(0) <- loop(ns, next);
-  if not_enough_space () then failwith "not enough memory";;
-(*let collect () = failwith "not implemented";;*)
+  if not_enough_space () then failwith "not enough memory";;*)
+let collect () = failwith "GC not implemented. Not enough memory. exiting.";;
 
 
 let get_next_i () : int<32> =
@@ -228,7 +252,10 @@ let rec list_tail ((w, i) : word * int<32>) : word =
   else w;;
 
 let get_byte () =
-  let c = vect_nth (inp, pos.(0)) in
+  (*let c = vect_nth (inp, pos.(0)) in
+  pos.(0) <- pos.(0) + 1;
+  c;;*)
+  let c = bytecode.(pos.(0)) in
   pos.(0) <- pos.(0) + 1;
   c;;
 
@@ -349,8 +376,8 @@ let get_cont () =
 
 let get_var (opnd : word) =
   match opnd with
-  Triplet _ -> get_car opnd
-  | Int i -> get_car (list_tail (tos (), i))
+  Triplet _ -> field0_word opnd
+  | Int i -> field0_word (list_tail (tos (), i))
   end;;
 
 let set_var (opnd, v) =
@@ -504,13 +531,19 @@ let set_global v =
 
 let start_vm () : unit =
   print_endline "RVM";
+  load_code ();
   (* init constants *)
   stack.(0) <- -1;
   heap.(0) <- -1;
   symtbl.(0) <- -1;
   pos.(0) <- 0;
   brk.(0) <- fh_start;
-  limit.(0) <- fh_end;
+  ram.(0) <- _nil;
+  ram.(1) <- _nil;
+  ram.(2) <- _nil;
+  (* SET IT BACK !!!*)
+  limit.(0) <- size_ram;
+
   decode ();
   let start_rib = field2_word (field0_word (Triplet (heap.(0)))) in
   pc.(0) <- int_of_triplet start_rib;

@@ -1,6 +1,6 @@
-input = """);'u?>vD?>vRD?>vRA?>vRA?>vR:?>vR=!(:lkm!':lkv6y"""
+inp = input()
 
-print("[|" + str(ord(input[0])), end="")
-for i in range(1, len(input)):
-    print(";", str(ord(input[i])), end="")
+print("[|" + str(ord(inp[0])), end="")
+for i in range(1, len(inp)):
+    print(";", str(ord(inp[i])), end="")
 print("|]")
