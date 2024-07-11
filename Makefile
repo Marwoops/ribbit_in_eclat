@@ -1,7 +1,7 @@
 # juste pour la production
 
-RVM=../rvm.ecl
-ECLAT_FLAGS=-notyB
+RVM=../new_rvm.ecl
+ECLAT_FLAGS=-relax -moore
 NS=200000000
 SRC=test/fibo.scm
 GEN_CODE=misc/generate_bytecode.py
@@ -9,7 +9,8 @@ GSI=../gambit/gsi/gsi
 BYTECODE=bytecode.ecl
 
 bytecode:
-	(cat $(SRC) | $(GSI) rsc.scm | python $(GEN_CODE) > $(BYTECODE))
+	(cat max.scm $(SRC) | $(GSI) rsc.scm | python $(GEN_CODE) > $(BYTECODE))
+
 build:
 	(cd eclat-compiler; ./eclat $(ECLAT_FLAGS) ../$(BYTECODE) $(RVM))
 

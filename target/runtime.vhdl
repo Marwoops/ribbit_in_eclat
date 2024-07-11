@@ -51,13 +51,16 @@ package runtime is
   
   function eclat_string_length (arg:value) return value;
   function eclat_resize (arg:value; k:integer) return value;
-
+  function eclat_int_of_bvect (arg:value) return value;
+  function eclat_bvect_of_int (arg:value) return value;
   procedure default_zero (xvar: out value);
   procedure eclat_print (arg:value);
   procedure eclat_print_string (arg:value);
   procedure eclat_print_int (arg:value);
-  procedure eclat_print_char (arg:value);
   procedure eclat_print_newline (arg:value);
+
+  procedure acquire(variable lock : inout value(0 to 0));
+  procedure release(variable lock : inout value(0 to 0));
 end package;
 
 
@@ -466,6 +469,16 @@ package body runtime is
        return std_logic_vector(resize(unsigned(arg),k));
     end;
 
+  function eclat_int_of_bvect (arg:value) return value is
+    begin
+       return arg;
+    end;
+
+  function eclat_bvect_of_int (arg:value) return value is
+    begin
+       return arg;
+    end;
+
   procedure default_zero (xvar: out value) is
   begin
     for i in 0 to xvar'length - 1 loop
@@ -503,15 +516,6 @@ package body runtime is
       echo(s);
     end procedure;
 
-  procedure eclat_print_char(arg:value) is
-    variable s : string (0 to arg'length / 8);
-    begin
-      for i in 0 to s'length-2 loop
-          s(i) := char_of_value(arg(i*8 to i*8+7));
-      end loop;
-      echo(s);
-    end procedure;
-
   procedure eclat_print_int(arg:value) is
     begin
       if arg'length <= 63 then
@@ -527,4 +531,15 @@ package body runtime is
         echo(" " &LF);
     end procedure;
 
+  procedure acquire(variable lock : inout value(0 to 0)) is
+    begin 
+      assert lock(0) = '0' report "lock already acquired" severity error;
+      lock(0) := '1';
+    end procedure;  
+  
+  procedure release(variable lock : inout value(0 to 0)) is
+    begin
+      assert lock(0) = '1' report "lock already released" severity error;
+      lock(0) := '0';
+    end procedure;    
 end runtime;

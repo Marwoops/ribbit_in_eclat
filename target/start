@@ -1,5 +1,0 @@
-ghdl -a runtime.vhdl
-ghdl -a main.vhdl
-ghdl -a tb_main.vhdl
-ghdl -e tb_main
-ghdl -r tb_main --vcd=tb.vcd --stop-time=20000ns
