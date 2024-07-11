@@ -1,13 +1,12 @@
-let static log_enabled = true^1;;
+let static log_enabled = (false)^1;;
 
 let print_endline (s : string) =
   print_string s; print_newline ();;
 
 let print_debug (s : string) =
-  (*if log_enabled.(0)
+  if (log_enabled.(0))
   then print_endline s
-  else print_endline "no log";;*)
-  print_endline s;;
+  else ();;
 
 let failwith (s : string) =
   print_string "Fatal error : ";
@@ -531,7 +530,8 @@ let start_vm () : unit =
   print_debug "RVM";
   load_code ();
   (* init constants *)
-  log_enabled.(0) <- true;
+  log_enabled.(0) <- false;
+
   stack.(0) <- -1;
   heap.(0) <- -1;
   symtbl.(0) <- -1;

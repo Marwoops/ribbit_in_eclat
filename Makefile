@@ -1,6 +1,6 @@
 # juste pour la production
 
-RVM=../new_rvm.ecl
+RVM=../rvm.ecl
 ECLAT_FLAGS=-relax -moore
 NS=200000000
 SRC=test/fibo.scm
