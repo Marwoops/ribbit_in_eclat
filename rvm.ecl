@@ -207,8 +207,6 @@ let rec collect () =
 	else scan
   in brk.(0) <- loop(ns, next);
   if not_enough_space () then failwith "not enough memory";;
-(*let collect () = failwith "GC not implemented. Not enough memory. exiting.";;*)
-
 
 let rec get_next_i () : int<32> =
   if brk.(0) = limit.(0) - 1
@@ -242,9 +240,6 @@ let rec list_tail ((w, i) : word * int<32>) : word =
   else w;;
 
 let get_byte () =
-  (*let c = vect_nth (inp, pos.(0)) in
-  pos.(0) <- pos.(0) + 1;
-  c;;*)
   let c = bytecode.(pos.(0)) in
   pos.(0) <- pos.(0) + 1;
   c;;
@@ -530,7 +525,7 @@ let start_vm () : unit =
   print_debug "RVM";
   load_code ();
   (* init constants *)
-  log_enabled.(0) <- false;
+  log_enabled.(0) <- true;
 
   stack.(0) <- -1;
   heap.(0) <- -1;
