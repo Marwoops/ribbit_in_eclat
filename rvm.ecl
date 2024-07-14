@@ -28,20 +28,21 @@ let _nil = (Int 0, Int 0, singleton_type);;
 let _false = (Int 0, Int 0, singleton_type);;
 let _true = (Int 0, Int 0, singleton_type);;
 
-let size_ram = 5000;;
+let size_ram = 20000;;
 let fh_start = 4;;
 let fh_end = size_ram / 2;;
 let sh_start = fh_end;;
 let sh_end = size_ram;;
 let static limit = 0^1;;
 
-let static ram = (Int 0, Int 0, Int 5)^5000;;
+let static ram = (Int 0, Int 0, Int 5)^20000;;
 let static stack = 0^1;;
 let static heap = 0^1;;
 let static symtbl = 0^1;;
 let static pc = 0^1;;
 let static pos = 0^1;;
 let static brk = 0^1;;
+let static step = 0^1;;
 
 let nil_rib = Triplet 0;;
 let true_rib = Triplet 1;;
@@ -441,12 +442,32 @@ let call_primitive i =
 let next_pc () =
   pc.(0) <- int_of_triplet (field2_word (Triplet (pc.(0))));;
 
+let show_step name =
+  let show_word (w : word) =
+    match w with
+    Triplet i -> print_string "x"; print_int i
+    | Int i -> print_int i
+    end
+  in
+  let (_, opnd, next) = get_rib (Triplet (pc.(0))) in
+  print_string "step "; print_int (step.(0));
+  print_string " : "; print_string name;
+  print_string " | stack : "; print_int (stack.(0));
+  print_string " | pc : "; print_int (pc.(0));
+  print_string " | opnd : "; show_word opnd;
+  print_string " | next : "; show_word next;
+  print_newline ();
+  step.(0) <- step.(0) + 1;;
+
 let rec run () =
   let (instr, opnd, next) = get_rib (Triplet (pc.(0))) in
   match instr with
   Int i ->
   match i with
   0 -> (* jump/call *)
+    if is_rib next
+	then show_step "jump"
+	else show_step "call";
     print_debug "jump/call";
     if not_enough_space () then collect ();
 	let (_, opnd, next) = get_rib (Triplet (pc.(0))) in
@@ -488,22 +509,26 @@ let rec run () =
 		run ()
 	end)
   | 1 -> (* set *)
+    show_step "set";
     print_debug "set";
     set_var (opnd, pop ());
 	next_pc ();
 	run ()
   | 2 -> (* get *)
+    show_step "get";
     print_debug "get";
     let v = get_var opnd in
 	push v;
 	next_pc ();
 	run ()
   | 3 -> (* const *)
+    show_step "const";
     print_debug "const";
     push opnd;
 	next_pc ();
 	run ()
   | 4 -> (* if *)
+    show_step "if";
     print_debug "if";
     if is_false (pop ())
 	then next_pc ()
@@ -523,9 +548,10 @@ let set_global v =
 
 let start_vm () : unit =
   print_debug "RVM";
+  step.(0) <- 0;
   load_code ();
   (* init constants *)
-  log_enabled.(0) <- true;
+  (*log_enabled.(0) <- false;*)
 
   stack.(0) <- -1;
   heap.(0) <- -1;
