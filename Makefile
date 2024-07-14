@@ -9,7 +9,7 @@ GSI=../gambit/gsi/gsi
 BYTECODE=bytecode.ecl
 
 bytecode:
-	(cat max.scm $(SRC) | $(GSI) rsc.scm | python $(GEN_CODE) > $(BYTECODE))
+	(cat misc/max.scm $(SRC) | $(GSI) rsc.scm | python $(GEN_CODE) > $(BYTECODE))
 
 build:
 	(cd eclat-compiler; ./eclat $(ECLAT_FLAGS) ../$(BYTECODE) $(RVM))
@@ -17,8 +17,11 @@ build:
 run:
 	(cd eclat-compiler; ./eclat $(ECLAT_FLAGS) ../$(BYTECODE) $(RVM); make simul NS=$(NS))
 
-run_ml:
+run_repl:
 	(ocamlc -o t ml_rvm.ml && ./t)
+
+run_ml:
+	(ocamlc -o a translation.ml && ./a)
 
 clean:
 	(cd target; make clean)
