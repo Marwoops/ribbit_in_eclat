@@ -1365,6 +1365,7 @@ let _menhir_action_013 =
             | "print" -> E_const (Op(Runtime(Print)))
             | "print_string" -> E_const (Op(Runtime(Print_string)))
             | "print_int" -> E_const (Op(Runtime(Print_int)))
+            | "print_char" -> E_const (Op(Runtime(Print_char)))
             | "print_newline" -> E_const (Op(Runtime(Print_newline)))
             | "string_length" -> E_const (Op(Runtime(String_length)))
             | "assert" -> E_const (Op(Runtime(Assert)))

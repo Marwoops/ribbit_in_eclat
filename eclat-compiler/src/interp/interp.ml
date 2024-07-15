@@ -125,6 +125,9 @@ let app_const e e2 r =
       | Runtime(Print_int),E_const (Int(n,_)) ->
          assert (evaluated e);
          Format.fprintf Format.std_formatter "%d" n; flush stdout; E_const Unit, r
+      | Runtime(Print_char),E_const (Int(n,_)) ->
+         assert (evaluated e);
+         Format.fprintf Format.std_formatter "%d" n; flush stdout; E_const Unit, r
       | Runtime(Print_newline),E_const Unit ->
          assert (evaluated e);
          Format.fprintf Format.std_formatter "\n"; flush stdout; E_const Unit, r
