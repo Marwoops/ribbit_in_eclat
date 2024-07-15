@@ -28,14 +28,14 @@ let _nil = (Int 0, Int 0, singleton_type);;
 let _false = (Int 0, Int 0, singleton_type);;
 let _true = (Int 0, Int 0, singleton_type);;
 
-let size_ram = 20000;;
+let size_ram = 15000;;
 let fh_start = 4;;
 let fh_end = size_ram / 2;;
 let sh_start = fh_end;;
 let sh_end = size_ram;;
 let static limit = 0^1;;
 
-let static ram = (Int 0, Int 0, Int 5)^20000;;
+let static ram = (Int 0, Int 0, Int 5)^15000;;
 let static stack = 0^1;;
 let static heap = 0^1;;
 let static symtbl = 0^1;;
@@ -283,14 +283,25 @@ let add_symbol (chars : word) =
   let end_rib = alloc_sym (end_of_string str_rib) in
   alloc_sym (cons (end_rib, top));;
 
+let show_symtbl_step () =
+  if log_enabled.(0)
+  then
+    (print_string "pos : "; print_int (pos.(0));
+    print_string " | symtbl : "; print_int (symtbl.(0));
+    print_string " | stack : "; print_int (stack.(0));
+    print_newline ())
+  else ();;
+
 let build_symtbl () =
   let rec loop1 n =
+    show_symtbl_step ();
     if 0 < n
 	then
 	  (let _ = add_symbol nil_rib in
 	  loop1 (n-1))
 	else
 	  (let rec loop2 chars =
+	    show_symtbl_step ();
 	    let x = get_byte () in
 		if x = 44
 		then let _ = add_symbol chars in loop2 nil_rib
@@ -303,8 +314,23 @@ let build_symtbl () =
 		in loop2 nil_rib)
   in loop1 (get_int 0);;
 
+let show_decode_step (op, n, x, d) =
+  if log_enabled.(0)
+  then
+    (print_string "pos : "; print_int (pos.(0));
+    print_string " | x : "; print_int x;
+    print_string " | op : "; print_int op;
+    print_string " | n : "; print_int n;
+    print_string " | d : "; print_int d;
+    print_string " | symtbl : "; print_int (symtbl.(0));
+    print_string " | stack : "; print_int (stack.(0));
+    print_newline ())
+  else ();;
+
 let decode () =
-  let _ = build_symtbl () in
+  let _ =
+    build_symtbl ();
+	print_debug "symbol table built" in
   let codes = [|20;30;0;10;11;4|] in
   let sym n = get_car (list_tail (top_symtbl (), n)) in
   let add_instruction (op, opnd) =
@@ -317,6 +343,7 @@ let decode () =
     let x = get_code () in
 	(let rec loop (op, n, x) =
 	  let d = vect_nth (codes, op) in
+	  show_decode_step (op, n, x, d);
 	  if d +2 < n
 	  then loop (op+1, n-(d+3), x)
 	  else
@@ -388,7 +415,7 @@ let prim3 f =
 
 let to_bool x = if x then true_rib else false_rib;;
 let getchar () = failwith "get_char is not available";;
-let putchar c = print_int c; c;;
+let putchar c = print_char c; c;;
 
 let prim2_int f =
   let f_rib = fun (y, x) ->
@@ -443,21 +470,24 @@ let next_pc () =
   pc.(0) <- int_of_triplet (field2_word (Triplet (pc.(0))));;
 
 let show_step name =
-  let show_word (w : word) =
-    match w with
-    Triplet i -> print_string "x"; print_int i
-    | Int i -> print_int i
-    end
-  in
-  let (_, opnd, next) = get_rib (Triplet (pc.(0))) in
-  print_string "step "; print_int (step.(0));
-  print_string " : "; print_string name;
-  print_string " | stack : "; print_int (stack.(0));
-  print_string " | pc : "; print_int (pc.(0));
-  print_string " | opnd : "; show_word opnd;
-  print_string " | next : "; show_word next;
-  print_newline ();
-  step.(0) <- step.(0) + 1;;
+  if log_enabled.(0)
+  then
+    (let show_word (w : word) =
+      match w with
+      Triplet i -> print_string "x"; print_int i
+      | Int i -> print_int i
+      end
+    in
+    let (_, opnd, next) = get_rib (Triplet (pc.(0))) in
+    print_string "step "; print_int (step.(0));
+    print_string " : "; print_string name;
+    print_string " | stack : "; print_int (stack.(0));
+    print_string " | pc : "; print_int (pc.(0));
+    print_string " | opnd : "; show_word opnd;
+    print_string " | next : "; show_word next;
+    print_newline ();
+    step.(0) <- step.(0) + 1)
+  else ();;
 
 let rec run () =
   let (instr, opnd, next) = get_rib (Triplet (pc.(0))) in
@@ -468,14 +498,12 @@ let rec run () =
     if is_rib next
 	then show_step "jump"
 	else show_step "call";
-    print_debug "jump/call";
     if not_enough_space () then collect ();
 	let (_, opnd, next) = get_rib (Triplet (pc.(0))) in
 	let proc = get_var opnd in
 	let code = get_car proc in
 	(match code with
 	Int i -> (* calling primitive *)
-	  print_debug "calling primitive";
 	  call_primitive i;
 	  if is_rib next
 	  then next_pc ()
@@ -485,7 +513,6 @@ let rec run () =
 		pc.(0) <- int_of_triplet (field2_word cont));
 	  run ()
 	| Triplet i -> (* calling lambda *)
-	  print_debug "calling lambda";
 	  let c2 = (Int 0, proc, pair_type) in
 	  let c2_rib = alloc_rib c2 in
 	  let nargs = int_of_Int (get_car code) in
@@ -510,32 +537,27 @@ let rec run () =
 	end)
   | 1 -> (* set *)
     show_step "set";
-    print_debug "set";
     set_var (opnd, pop ());
 	next_pc ();
 	run ()
   | 2 -> (* get *)
     show_step "get";
-    print_debug "get";
     let v = get_var opnd in
 	push v;
 	next_pc ();
 	run ()
   | 3 -> (* const *)
     show_step "const";
-    print_debug "const";
     push opnd;
 	next_pc ();
 	run ()
   | 4 -> (* if *)
     show_step "if";
-    print_debug "if";
     if is_false (pop ())
 	then next_pc ()
 	else pc.(0) <- int_of_triplet opnd;
 	run ()
   | 5 ->
-    print_newline ();
     print_debug "HALT!"
   | _ -> failwith "not implemented yet"
   end
@@ -547,7 +569,6 @@ let set_global v =
   symtbl.(0) <- int_of_triplet (get_cdr (top_symtbl ()));;
 
 let start_vm () : unit =
-  print_debug "RVM";
   step.(0) <- 0;
   load_code ();
   (* init constants *)
@@ -582,8 +603,6 @@ let start_vm () : unit =
   run ();;
 
 let main i =
-  let rec forever () = forever () in
   exec
-    start_vm ();
-	forever ()
+    start_vm ()
   default ();;
