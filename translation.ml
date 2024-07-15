@@ -1,6 +1,6 @@
 let log_enabled = [|false|];;
 
-let bytecode = Array.make 78 0;;
+let bytecode = Array.make 4872 0;;
 
 let load_code () =
   bytecode.(0) <- 82;
